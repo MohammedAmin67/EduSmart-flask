@@ -31,15 +31,15 @@ const PORT = process.env.PORT || 5002;
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-app.get('*', (req, res, next) => {
-  if (req.originalUrl.startsWith('/api')) return next();
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
+// ===== REMOVED: Serving frontend static files for Render deployment =====
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// app.use(express.static(path.join(__dirname, '../frontend/dist')));
+// app.get('*', (req, res, next) => {
+//   if (req.originalUrl.startsWith('/api')) return next();
+//   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+// });
+// =======================================================================
 
 app.use((req, res) => {
   res.status(404).json({ msg: "Route not found" });
