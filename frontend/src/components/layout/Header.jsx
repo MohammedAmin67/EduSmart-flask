@@ -121,13 +121,13 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
   }, [showSuggestions, filteredCourses, highlightedIdx]);
 
   // -----------Make search click set selectedCourseId globally -----------
- const handleSelectCourse = (course) => {
-  setSearchTerm('');
-  setShowSuggestions(false);
-  setHighlightedIdx(-1);
+  const handleSelectCourse = (course) => {
+    setSearchTerm('');
+    setShowSuggestions(false);
+    setHighlightedIdx(-1);
 
-  if (setSelectedCourseId) setSelectedCourseId(course.id);
-  if (setActiveTab) setActiveTab('learning');
+    if (setSelectedCourseId) setSelectedCourseId(course.id);
+    if (setActiveTab) setActiveTab('learning');
     // navigate(`/dashboard/learning/${course.id}`);
   };
 
@@ -244,7 +244,17 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
               <Search size={22} className="text-blue-500" />
             </button>
             {(isMobileSearchOpen || searchTerm) && (
-              <div className="absolute left-10 top-0 w-60 max-w-[70vw]">
+              // --- FIXED: limit width and position so it fits between logo+avatar on small screens ---
+              <div
+                className="absolute left-0 top-full mt-2"
+                style={{
+                  width: 'calc(100vw - 120px)', // 120px as an estimate for avatar/menu/logo
+                  maxWidth: '320px',
+                  minWidth: '180px',
+                  right: 0,
+                  zIndex: 99,
+                }}
+              >
                 <input
                   type="text"
                   ref={searchInputRef}
@@ -257,10 +267,10 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
                   onBlur={() => setTimeout(() => { setShowSuggestions(false); setIsMobileSearchOpen(false); }, 100)}
                   placeholder="Search courses..."
                   className="pl-3 pr-3 py-2 border border-blue-200 dark:border-blue-700 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent w-full bg-white/90 dark:bg-gray-800 dark:text-gray-100 transition-colors"
-                  style={{ minWidth: 180 }}
+                  style={{ width: '100%' }}
                 />
                 {showSuggestions && filteredCourses.length > 0 && (
-                  <ul className="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-700 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                  <ul className="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-700 rounded-xl shadow-lg max-h-52 overflow-y-auto z-50">
                     {filteredCourses.map((course, idx) => (
                       <li
                         key={course.id}
@@ -275,7 +285,7 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
                   </ul>
                 )}
                 {showSuggestions && searchTerm && filteredCourses.length === 0 && (
-                  <div className="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-700 rounded-xl shadow-lg px-4 py-2 text-gray-500 dark:text-gray-300">
+                  <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-700 rounded-xl shadow-lg px-4 py-2 text-gray-500 dark:text-gray-300 z-50">
                     No courses found.
                   </div>
                 )}
