@@ -29,29 +29,69 @@ const getChartData = (days) => {
 
 const STORAGE_KEY = 'analytics_days_selected';
 
+// Helper to get weekday names for 7-day data (assumes you have a .date or .day property)
+const getWeekdayLabels = (data) => {
+  // Try to get weekday from a date property (ISO string or Date), or fallback to Mon-Sun rolling
+  if (data.length === 7) {
+    // Try to parse weekday from a date property if available
+    if (data[0] && data[0].date) {
+      // Assume .date is ISO string
+      return data.map(d => {
+        const date = new Date(d.date);
+        // Format as 'Mon', 'Tue', etc.
+        return date.toLocaleDateString('en-US', { weekday: 'short' });
+      });
+    }
+    // Fallback: rolling weekdays, assuming last is today
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    // Get the index for today (0=Sun, 6=Sat)
+    let lastIndex = today.getDay();
+    // Return the last 7 weekdays, ending with today
+    return Array.from({ length: 7 }, (_, i) => weekdays[(lastIndex - 6 + i + 7) % 7]);
+  }
+  // Fallback: empty or keep .day
+  return data.map(d => d.day || '');
+};
+
 const AnalyticsCharts = ({ activeTab }) => {
+  // Responsive: Track window width
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  );
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const isMobile = windowWidth < 768;
+
+  // Days selection: allow 7 on all, 30 only on desktop/tablet
   const [days, setDays] = useState(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
-    return saved ? Number(saved) : 7;
+    const d = saved ? Number(saved) : 7;
+    return (typeof window !== "undefined" && window.innerWidth < 768) ? 7 : d;
   });
+
+  // If resizing to mobile, force days=7
+  useEffect(() => {
+    if (isMobile && days !== 7) setDays(7);
+    // eslint-disable-next-line
+  }, [isMobile]);
 
   const chartContainer = useRef(null);
   const [chartWidth, setChartWidth] = useState(500);
 
   // To trigger width recalculation on tab switch or section visibility
   useEffect(() => {
-    // Handler to update chart width after layout
     const updateWidth = () => {
       if (chartContainer.current) {
         const width = chartContainer.current.offsetWidth || 500;
         setChartWidth(width);
       }
     };
-
-    // Run when the component mounts and when tab becomes active
     updateWidth();
 
-    // Use ResizeObserver for dynamic/parent container resizes
     let observer;
     if (chartContainer.current && 'ResizeObserver' in window) {
       observer = new window.ResizeObserver(() => {
@@ -62,9 +102,7 @@ const AnalyticsCharts = ({ activeTab }) => {
       window.addEventListener('resize', updateWidth);
     }
 
-    // If using a tab system, recalc on tab switch
     if (typeof activeTab !== "undefined") {
-      // Delay to allow layout/parent to render
       setTimeout(updateWidth, 120);
     }
 
@@ -83,12 +121,14 @@ const AnalyticsCharts = ({ activeTab }) => {
 
   const data = getChartData(days);
 
-  const getSvgMinWidth = () => (days === 7 ? 700 : 1200);
-
+  // Small chart padding to avoid bar clipping
+  const chartPadding = 10;
   const chartHeight = 140;
-  const svgWidth = days === 30 ? 1200 : chartWidth;
-  const barGap = data.length > 0 ? svgWidth / data.length : 1;
-  const barWidth = Math.max(barGap * 0.45, 12);
+  // SVG uses 100% for width, viewBox for scaling
+  const barCount = data.length;
+  const internalWidth = chartWidth - 2 * chartPadding > 0 ? chartWidth - 2 * chartPadding : 10;
+  const barGap = barCount > 0 ? (internalWidth / barCount) : 1;
+  const barWidth = Math.max(barGap * 0.45, 10);
   const maxMinutes = Math.max(...data.map(day => Number.isFinite(day.minutes) ? day.minutes : 0), 1);
   const maxXP = Math.max(...data.map(day => Number.isFinite(day.xp) ? day.xp : 0), 1);
 
@@ -97,169 +137,189 @@ const AnalyticsCharts = ({ activeTab }) => {
     ? subjectPerformance.reduce((top, curr) => (curr.accuracy > top.accuracy ? curr : top), subjectPerformance[0])
     : {};
 
+  // Weekday labels for X axis if days===7
+  const weekdayLabels = days === 7 ? getWeekdayLabels(data) : undefined;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7 }}
+      transition={{ duration: 0.2 }}
       className="space-y-8 transition-colors duration-500"
+      style={{ boxSizing: 'border-box', width: '100%' }}
     >
       <motion.div {...fadeInUp(0)} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <h2 className="text-3xl font-extrabold text-gray-900 dark:text-gray-100">Learning Analytics</h2>
         <div className="flex space-x-2">
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          transition={{ type: 'spring', stiffness: 250 }}
+          className={`px-3 py-1 text-sm rounded-lg font-bold shadow 
+            transition-colors duration-200
+            ${days === 7
+              ? 'bg-blue-500 text-white dark:bg-blue-400 dark:text-gray-900'
+              : 'text-gray-500 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-800 dark:hover:text-blue-300'}`}
+          onClick={() => setDays(7)}
+          aria-pressed={days === 7}
+        >
+          7 Days
+        </motion.button>
+        {!isMobile && (
           <motion.button
-            whileHover={{ scale: 1.07, backgroundColor: "#dbeafe" }}
+            whileHover={{ scale: 1.03 }}
             transition={{ type: 'spring', stiffness: 250 }}
-            className={`px-3 py-1 text-sm rounded-lg font-bold shadow transition
-              ${days === 7 ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium'}`}
-            onClick={() => setDays(7)}
-            aria-pressed={days === 7}
-          >
-            7 Days
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.07, backgroundColor: "#dbeafe" }}
-            transition={{ type: 'spring', stiffness: 250 }}
-            className={`px-3 py-1 text-sm rounded-lg font-bold shadow transition
-              ${days === 30 ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium'}`}
+            className={`px-3 py-1 text-sm rounded-lg font-bold shadow 
+              transition-colors duration-200
+              ${days === 30
+                ? 'bg-blue-500 text-white dark:bg-blue-400 dark:text-gray-900'
+                : 'text-gray-500 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-800 dark:hover:text-blue-300'}`}
             onClick={() => setDays(30)}
             aria-pressed={days === 30}
           >
             30 Days
           </motion.button>
-        </div>
+        )}
+      </div>
       </motion.div>
 
       {/* Weekly Progress Responsive SVG Chart */}
       <div>
-        <Card className="glass-card p-8 rounded-2xl shadow-xl bg-gradient-to-tr from-blue-100 via-purple-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-0 transition-colors duration-500">
+        <Card className="glass-card p-4 sm:p-8 rounded-2xl shadow-xl bg-gradient-to-tr from-blue-100 via-purple-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-0 transition-colors duration-500"
+              style={{ boxSizing: 'border-box', width: '100%', maxWidth: '100%' }}>
           <h3 className="text-xl font-bold mb-5 text-blue-900 dark:text-blue-200">Weekly Activity</h3>
           <div
             ref={chartContainer}
-            className="w-full"
-            style={{ overflowX: 'auto', overflowY: 'hidden', paddingBottom: 0, marginBottom: 0, maxHeight: 'unset' }}
-          >
-            <div className="w-full" style={{ overflowX: 'auto', overflowY: 'hidden', paddingBottom: 0, marginBottom: 0 }}>
-              <svg
-                width={svgWidth}
-                height={chartHeight + 52}
-                viewBox={`0 0 ${svgWidth} ${chartHeight + 52}`}
-                preserveAspectRatio="none"
-                className="block"
-                style={{
-                  minWidth: days === 30 ? 1200 : undefined,
-                  width: svgWidth,
-                  maxWidth: '100%',
-                  display: 'block',
-                }}
-              >
-                {/* Y axis grid lines */}
-                {[0, 0.25, 0.5, 0.75, 1].map((v, i) =>
-                  <line
-                    key={i}
-                    x1={0}
-                    x2={svgWidth}
-                    y1={18 + chartHeight - chartHeight * v}
-                    y2={18 + chartHeight - chartHeight * v}
-                    stroke="#e5e7eb"
-                    strokeDasharray="2,2"
-                  />
-                )}
-                {/* XP Line */}
-                <polyline
-                  fill="none"
-                  stroke="#a78bfa"
-                  strokeWidth="2"
-                  points={
-                    data.map((day, i) => {
-                      const safeXP = Number.isFinite(day.xp) ? day.xp : 0;
-                      const y = 18 + chartHeight - (safeXP / maxXP) * (chartHeight - 28);
-                      return `${barGap * i + barGap / 2},${y}`;
-                    }).join(' ')
-                  }
-                  className="transition-all duration-700"
+            style={{
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              overflowX: 'hidden',
+              overflowY: 'hidden',
+              padding: 0,
+              margin: 0,
+              background: 'none',
+            }}>
+            <svg
+              width="100%"
+              height={chartHeight + 52}
+              viewBox={`0 0 ${chartWidth} ${chartHeight + 52}`}
+              preserveAspectRatio="none"
+              className="block"
+              style={{ display: 'block', maxWidth: '100%' }}
+            >
+              {/* Y axis grid lines */}
+              {[0, 0.25, 0.5, 0.75, 1].map((v, i) =>
+                <line
+                  key={i}
+                  x1={chartPadding}
+                  x2={chartWidth - chartPadding}
+                  y1={18 + chartHeight - chartHeight * v}
+                  y2={18 + chartHeight - chartHeight * v}
+                  stroke="#e5e7eb"
+                  strokeDasharray="2,2"
                 />
-                {/* Bars */}
-                {data.map((day, i) => {
-                  if (!day || day.day == null) return null;
-                  const safeXP = Number.isFinite(day.xp) ? day.xp : 0;
-                  const safeMinutes = Number.isFinite(day.minutes) ? day.minutes : 0;
-                  const xpY = 18 + chartHeight - (safeXP / maxXP) * (chartHeight - 28);
-                  const minBarY = 18 + chartHeight - (safeMinutes / maxMinutes) * (chartHeight - 28);
-                  return (
-                    <g key={day.day || i}>
-                      {/* XP Bar */}
-                      <rect
-                        x={barGap * i + (barGap - barWidth) / 2}
-                        y={xpY}
-                        width={barWidth}
-                        height={(safeXP / maxXP) * (chartHeight - 28)}
-                        fill="#a78bfa"
-                        rx="4"
-                        className="transition-all duration-700"
-                      />
-                      {/* Minutes Bar */}
-                      <rect
-                        x={barGap * i + (barGap - barWidth) / 2 + barWidth * 0.18}
-                        y={minBarY}
-                        width={barWidth * 0.65}
-                        height={(safeMinutes / maxMinutes) * (chartHeight - 28)}
-                        fill="#3b82f6"
-                        rx="3"
-                        className="transition-all duration-700"
-                        opacity="0.85"
-                      />
-                      {/* XP point */}
-                      <circle
-                        cx={barGap * i + barGap / 2}
-                        cy={xpY}
-                        r="4"
-                        fill="#a78bfa"
-                        stroke="#fff"
-                        strokeWidth="2"
-                      />
-                      {/* XP label above the point */}
-                      <text
-                        x={barGap * i + barGap / 2}
-                        y={xpY - 8}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fill="#7c3aed"
-                        fontWeight={700}
-                        style={{ pointerEvents: 'none' }}
-                      >{safeXP}</text>
-                      {/* Minutes label below the bar */}
-                      <text
-                        x={barGap * i + barGap / 2}
-                        y={chartHeight + 28}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fill="#2563eb"
-                        fontWeight={700}
-                        style={{ pointerEvents: 'none' }}
-                      >{safeMinutes}m</text>
-                    </g>
-                  );
-                })}
-                {/* Day labels (horizontal, only every 5th and last) */}
-                {data.map((day, i, arr) => {
-                  if (!day || !day.day) return null;
-                  if (!(i === 0 || (i + 1) % 5 === 0 || i === arr.length - 1)) return null;
+              )}
+              {/* XP Line */}
+              <polyline
+                fill="none"
+                stroke="#a78bfa"
+                strokeWidth="2"
+                points={
+                  data.map((day, i) => {
+                    const safeXP = Number.isFinite(day.xp) ? day.xp : 0;
+                    const y = 18 + chartHeight - (safeXP / maxXP) * (chartHeight - 28);
+                    const x = chartPadding + barGap * i + barGap / 2;
+                    return `${x},${y}`;
+                  }).join(' ')
+                }
+                className="transition-all duration-700"
+              />
+              {/* Bars */}
+              {data.map((day, i) => {
+                if (!day || day.day == null) return null;
+                const safeXP = Number.isFinite(day.xp) ? day.xp : 0;
+                const safeMinutes = Number.isFinite(day.minutes) ? day.minutes : 0;
+                const xpY = 18 + chartHeight - (safeXP / maxXP) * (chartHeight - 28);
+                const minBarY = 18 + chartHeight - (safeMinutes / maxMinutes) * (chartHeight - 28);
+                const baseX = chartPadding + barGap * i;
+                return (
+                  <g key={day.day || i}>
+                    {/* XP Bar */}
+                    <rect
+                      x={baseX + (barGap - barWidth) / 2}
+                      y={xpY}
+                      width={barWidth}
+                      height={(safeXP / maxXP) * (chartHeight - 28)}
+                      fill="#a78bfa"
+                      rx="4"
+                      className="transition-all duration-700"
+                    />
+                    {/* Minutes Bar */}
+                    <rect
+                      x={baseX + (barGap - barWidth) / 2 + barWidth * 0.18}
+                      y={minBarY}
+                      width={barWidth * 0.65}
+                      height={(safeMinutes / maxMinutes) * (chartHeight - 28)}
+                      fill="#3b82f6"
+                      rx="3"
+                      className="transition-all duration-700"
+                      opacity="0.85"
+                    />
+                    {/* XP point */}
+                    <circle
+                      cx={baseX + barGap / 2}
+                      cy={xpY}
+                      r="4"
+                      fill="#a78bfa"
+                      stroke="#fff"
+                      strokeWidth="2"
+                    />
+                    {/* XP label above the point */}
+                    <text
+                      x={baseX + barGap / 2}
+                      y={xpY - 8}
+                      textAnchor="middle"
+                      fontSize="11"
+                      fill="#7c3aed"
+                      fontWeight={700}
+                      style={{ pointerEvents: 'none' }}
+                    >{safeXP}</text>
+                    {/* Minutes label below the bar */}
+                    <text
+                      x={baseX + barGap / 2}
+                      y={chartHeight + 28}
+                      textAnchor="middle"
+                      fontSize="11"
+                      fill="#2563eb"
+                      fontWeight={700}
+                      style={{ pointerEvents: 'none' }}
+                    >{safeMinutes}m</text>
+                  </g>
+                );
+              })}
+              {/* Day labels (use weekday names for 7 days, otherwise fallback to .day) */}
+              {data.map((day, i, arr) => {
+                if (!day) return null;
+                // Show all x labels for 7 days; for 30 days, show sparsely
+                if (days === 7 || i === 0 || (i + 1) % 5 === 0 || i === arr.length - 1) {
                   return (
                     <text
-                      key={`${day.day}-label-${i}`}
-                      x={barGap * i + barGap / 2}
+                      key={`label-${i}`}
+                      x={chartPadding + barGap * i + barGap / 2}
                       y={chartHeight + 46}
                       textAnchor="middle"
                       fontSize="11"
                       fill="#444"
                     >
-                      {day.day}
+                      {days === 7
+                        ? (weekdayLabels ? weekdayLabels[i] : '')
+                        : (day.day || '')}
                     </text>
                   );
-                })}
-              </svg>
-            </div>
+                }
+                return null;
+              })}
+            </svg>
             {/* Legend stays OUTSIDE scroll area */}
             <motion.div
               initial={{ opacity: 0, y: 14 }}
@@ -283,7 +343,8 @@ const AnalyticsCharts = ({ activeTab }) => {
 
       {/* Subject Performance */}
       <motion.div {...fadeInUp(2)}>
-        <Card className="glass-card p-8 rounded-2xl bg-gradient-to-tr from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 border-0 shadow-lg transition-colors duration-500">
+        <Card className="glass-card p-4 sm:p-8 rounded-2xl bg-gradient-to-tr from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 border-0 shadow-lg transition-colors duration-500"
+              style={{ boxSizing: 'border-box', width: '100%', maxWidth: '100%' }}>
           <h3 className="text-xl font-bold mb-5 text-purple-900 dark:text-purple-200">Subject Performance</h3>
           <motion.div
             initial="hidden"
@@ -370,7 +431,8 @@ const AnalyticsCharts = ({ activeTab }) => {
           }
         ].map((item, i) => (
           <motion.div key={item.label} {...fadeInUp(i)}>
-            <Card className={`text-center bg-gradient-to-br ${item.bg} rounded-2xl shadow-lg glass-card transition-colors duration-500`}>
+            <Card className={`text-center bg-gradient-to-br ${item.bg} rounded-2xl shadow-lg glass-card transition-colors duration-500`}
+                  style={{ boxSizing: 'border-box', width: '100%', maxWidth: '100%' }}>
               {item.icon}
               <div className="flex items-center justify-center gap-2">
                 <span className={`text-3xl font-bold ${item.color}`}>{item.value}</span>
