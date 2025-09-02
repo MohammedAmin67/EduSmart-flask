@@ -2,7 +2,7 @@
 
 export const userData = {
   id: 1,
-  name: "Alex Johnson",
+  name: "AlexJohnson",
   email: "alex@example.com",
   level: 12,
   totalXP: 2850,
@@ -508,13 +508,36 @@ export const dailyActivity = {
 
 export const analyticsData = {
   weeklyChart: [
-    { day: 'Mon', xp: 50, minutes: 40 },
-    { day: 'Tue', xp: 80, minutes: 60 },
-    { day: 'Wed', xp: 30, minutes: 20 },
-    { day: 'Thu', xp: 90, minutes: 70 },
-    { day: 'Fri', xp: 65, minutes: 55 },
-    { day: 'Sat', xp: 110, minutes: 90 },
-    { day: 'Sun', xp: 20, minutes: 10 }
+    { day: 'Day 1', xp: 38, minutes: 28 },
+    { day: 'Day 2', xp: 72, minutes: 51 },
+    { day: 'Day 3', xp: 41, minutes: 33 },
+    { day: 'Day 4', xp: 109, minutes: 75 },
+    { day: 'Day 5', xp: 57, minutes: 44 },
+    { day: 'Day 6', xp: 131, minutes: 95 },
+    { day: 'Day 7', xp: 149, minutes: 113 },
+    { day: 'Day 8', xp: 63, minutes: 49 },
+    { day: 'Day 9', xp: 94, minutes: 78 },
+    { day: 'Day 10', xp: 80, minutes: 55 },
+    { day: 'Day 11', xp: 43, minutes: 24 },
+    { day: 'Day 12', xp: 128, minutes: 107 },
+    { day: 'Day 13', xp: 58, minutes: 32 },
+    { day: 'Day 14', xp: 87, minutes: 70 },
+    { day: 'Day 15', xp: 70, minutes: 41 },
+    { day: 'Day 16', xp: 132, minutes: 120 },
+    { day: 'Day 17', xp: 48, minutes: 38 },
+    { day: 'Day 18', xp: 110, minutes: 85 },
+    { day: 'Day 19', xp: 65, minutes: 39 },
+    { day: 'Day 20', xp: 124, minutes: 99 },
+    { day: 'Day 21', xp: 97, minutes: 61 },
+    { day: 'Day 22', xp: 74, minutes: 53 },
+    { day: 'Day 23', xp: 102, minutes: 91 },
+    { day: 'Day 24', xp: 57, minutes: 34 },
+    { day: 'Day 25', xp: 131, minutes: 102 },
+    { day: 'Day 26', xp: 62, minutes: 27 },
+    { day: 'Day 27', xp: 120, minutes: 81 },
+    { day: 'Day 28', xp: 53, minutes: 21 },
+    { day: 'Day 29', xp: 111, minutes: 97 },
+    { day: 'Day 30', xp: 85, minutes: 62 }
   ],
   subjectPerformance: [
     {
@@ -543,6 +566,7 @@ export const analyticsData = {
     bestStreak: 7
   }
 };
+
 
 export const achievements = [
   {

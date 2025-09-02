@@ -17,16 +17,19 @@ const Avatar = ({ user, size = 'lg', showLevel = true, animated = false }) => {
     return 'bg-gradient-to-br from-gray-400 to-gray-600';
   };
 
+  // Add aspect-square and min-w/min-h to prevent oval shape
+  const baseClasses = `${sizes[size]} rounded-full aspect-square min-w-[3rem] min-h-[3rem] object-cover border-2 border-blue-300 shadow-lg ${animated ? 'transition-all duration-300 hover:scale-105' : ''}`;
+
   return (
-    <div className="relative">
+    <div className="relative flex items-center justify-center">
       {user.avatar ? (
         <img
           src={user.avatar}
           alt={user.name || "User Avatar"}
-          className={`${sizes[size]} rounded-full object-cover border-2 border-blue-300 shadow-lg ${animated ? 'transition-all duration-300 hover:scale-105' : ''}`}
+          className={baseClasses}
         />
       ) : (
-        <div className={`${sizes[size]} ${getAvatarColor(user.level)} rounded-full flex items-center justify-center text-white shadow-lg ${animated ? 'transition-all duration-300 hover:scale-105' : ''}`}>
+        <div className={`${sizes[size]} rounded-full aspect-square min-w-[3rem] min-h-[3rem] flex items-center justify-center ${getAvatarColor(user.level)} text-white shadow-lg ${animated ? 'transition-all duration-300 hover:scale-105' : ''}`}>
           <User size={size === 'sm' ? 16 : size === 'md' ? 20 : size === 'lg' ? 24 : 28} />
         </div>
       )}

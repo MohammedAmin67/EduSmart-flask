@@ -26,7 +26,8 @@ export const DarkModeContext = createContext({
 
 function AppRoutes({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, selectedCourseId, setSelectedCourseId }) {
   const navigate = useNavigate();
-  const { user, setUser } = useUser(); // Use context for login state
+  const { user, setUser } = useUser();
+  const location = useLocation();
 
   // Animation wrapper for main dashboard area
   const AnimatedMain = ({ children }) => (
@@ -56,7 +57,7 @@ function AppRoutes({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, selec
           return (
             <AnimatedMain>
               <div className="text-center text-lg py-10">
-                Please select a course first from <span className="underline cursor-pointer" onClick={() => setActiveTab('courses')}>My Courses</span>.
+                Please select a Course from <span className="underline cursor-pointer" onClick={() => setActiveTab('courses')}>My Courses</span> or type in the search bar.
               </div>
             </AnimatedMain>
           );
@@ -107,7 +108,6 @@ function AppRoutes({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, selec
   // ---- Auth Handlers (context driven) ----
   const handleLogin = (userObj) => {
     setUser(userObj);
-    // localStorage handled in UserContext
     navigate('/dashboard');
   };
 
@@ -162,6 +162,7 @@ function AppRoutes({ activeTab, setActiveTab, sidebarOpen, setSidebarOpen, selec
                   <Header 
                     onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
                     setActiveTab={setActiveTab}
+                    setSelectedCourseId={setSelectedCourseId}
                   />
                   <main className="p-4 lg:p-8 pt-[72px]">{renderContent()}</main>
                 </div>

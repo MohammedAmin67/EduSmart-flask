@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import ProgressBar from "../shared/ProgressBar";
 import Spinner from "../Spinner/Spinner";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from 'react-hot-toast';
 import { useUser } from "../context/UserContext";
 
@@ -48,6 +49,7 @@ const Profile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [hoveredMilestone, setHoveredMilestone] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [feedbackSent, setFeedbackSent] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar || "");
   const fileInputRef = React.useRef(null);
@@ -301,61 +303,101 @@ const Profile = () => {
           </div>
           {/* Contact Me Section */}
           <div className={`transform transition-all duration-1000 delay-800 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <div className="backdrop-blur-xl dark:bg-white/10 bg-white/70 rounded-3xl p-6 border border-white/40 dark:border-white/20 shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:bg-white/80 dark:hover:bg-white/15 h-full">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                <Mail className="w-6 h-6 text-cyan-400 animate-pulse" />
-                Feedback
-              </h3>
-              {/* Contact Form */}
-              <div className="space-y-4">
-                {['name', 'email', 'message'].map((field) => (
-                  <div key={field} className="relative">
-                    <label
-                      className={`absolute left-4 transition-all duration-300 pointer-events-none ${
-                        focusedField === field || formData[field]
-                          ? '-top-2 text-xs bg-gradient-to-r from-blue-600 to-pink-400 dark:from-blue-400 dark:to-pink-400 bg-clip-text text-transparent'
-                          : 'top-3 text-gray-600 dark:text-white/60'
-                      }`}
+          <div className="backdrop-blur-xl dark:bg-white/10 bg-white/70 rounded-3xl p-6 border border-white/40 dark:border-white/20 shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:bg-white/80 dark:hover:bg-white/15 h-full">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+              <Mail className="w-6 h-6 text-cyan-400 animate-pulse" />
+              Feedback
+            </h3>
+            {/* Contact Form */}
+            <div className="space-y-4">
+              {['name', 'email', 'message'].map((field) => (
+                <div key={field} className="relative">
+                  <label
+                    className={`absolute left-4 transition-all duration-300 pointer-events-none ${
+                      focusedField === field || formData[field]
+                        ? '-top-2 text-xs bg-gradient-to-r from-blue-600 to-pink-400 dark:from-blue-400 dark:to-pink-400 bg-clip-text text-transparent'
+                        : 'top-3 text-gray-600 dark:text-white/60'
+                    }`}
+                  >
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  {field === 'message' ? (
+                    <textarea
+                      className="w-full p-4 bg-white/90 dark:bg-white/10 border border-black/40 dark:border-cyan/20 rounded-2xl text-gray-900 dark:text-white placeholder-transparent focus:outline-none focus:border-blue-400/50 focus:bg-white/95 dark:focus:bg-white/15 transition-all duration-300 resize-none h-24 hover:shadow-lg"
+                      onFocus={() => setFocusedField(field)}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => handleInputChange(field, e.target.value)}
+                      value={formData[field]}
+                    />
+                  ) : (
+                    <input
+                      type={field === 'email' ? 'email' : 'text'}
+                      className="w-full p-4 bg-white/90 dark:bg-white/10 border border-black/40 dark:border-cyan/20 rounded-2xl text-gray-900 dark:text-white placeholder-transparent focus:outline-none focus:border-blue-400/50 focus:bg-white/95 dark:focus:bg-white/15 transition-all duration-300 hover:shadow-lg"
+                      onFocus={() => setFocusedField(field)}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => handleInputChange(field, e.target.value)}
+                      value={formData[field]}
+                    />
+                  )}
+                </div>
+              ))}
+              {/* --- FEEDBACK MESSAGE | THANK YOU --- */}
+              <div className="relative">
+                <AnimatePresence>
+                  {feedbackSent ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                      transition={{ duration: 0.4 }}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-400 to-pink-400 text-white font-semibold flex items-center justify-center gap-2 shadow-xl text-lg"
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        zIndex: 10,
+                      }}
                     >
-                      {field.charAt(0).toUpperCase() + field.slice(1)}
-                    </label>
-                    {field === 'message' ? (
-                      <textarea
-                        className="w-full p-4 bg-white/90 dark:bg-white/10 border border-black/40 dark:border-cyan/20 rounded-2xl text-gray-900 dark:text-white placeholder-transparent focus:outline-none focus:border-blue-400/50 focus:bg-white/95 dark:focus:bg-white/15 transition-all duration-300 resize-none h-24 hover:shadow-lg"
-                        onFocus={() => setFocusedField(field)}
-                        onBlur={() => setFocusedField(null)}
-                        onChange={(e) => handleInputChange(field, e.target.value)}
-                        value={formData[field]}
-                      />
-                    ) : (
-                      <input
-                        type={field === 'email' ? 'email' : 'text'}
-                        className="w-full p-4 bg-white/90 dark:bg-white/10 border border-black/40 dark:border-cyan/20 rounded-2xl text-gray-900 dark:text-white placeholder-transparent focus:outline-none focus:border-blue-400/50 focus:bg-white/95 dark:focus:bg-white/15 transition-all duration-300 hover:shadow-lg"
-                        onFocus={() => setFocusedField(field)}
-                        onBlur={() => setFocusedField(null)}
-                        onChange={(e) => handleInputChange(field, e.target.value)}
-                        value={formData[field]}
-                      />
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    alert("Thank you for your feedback!");
-                    setFormData({ name: '', email: '', message: '' });
-                  }}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-pink-500 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-pink-600 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 flex items-center justify-center gap-2 group"
-                >
-                  Send Message
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
+                      <Sparkles className="w-5 h-5 text-yellow-200 animate-spin-slow" />
+                      Thank you for your feedback!
+                    </motion.div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const { name, email, message } = formData;
+                        if (!name.trim()) {
+                          toast.error("Please enter your name.");
+                          return;
+                        }
+                        if (!email.trim()) {
+                          toast.error("Please enter your email.");
+                          return;
+                        }
+                        if (!message.trim()) {
+                          toast.error("Please enter your message.");
+                          return;
+                        }
+                        setFeedbackSent(true);
+                        setTimeout(() => {
+                          setFeedbackSent(false);
+                          setFormData({ name: '', email: '', message: '' });
+                        }, 2000); // Show thank you for 2 seconds
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-blue-600 to-pink-500 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-pink-600 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-400/50 flex items-center justify-center gap-2 group"
+                    >
+                      Send Message
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </button>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
         </div>
+        </div>
+        </div>
       </div>
-    </div>
   );
 };
 
