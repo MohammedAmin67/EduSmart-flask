@@ -12,8 +12,8 @@ import { TextPlugin } from 'gsap/TextPlugin';
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
-// Enhanced Three.js background with improved colors for both modes
-const useEnhancedBackground = (containerRef, darkMode) => {
+// Simplified background for hero section
+const useSimpleBackground = (containerRef, darkMode) => {
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -22,7 +22,7 @@ const useEnhancedBackground = (containerRef, darkMode) => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
       alpha: true,
@@ -32,34 +32,28 @@ const useEnhancedBackground = (containerRef, darkMode) => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     containerRef.current.appendChild(renderer.domElement);
 
-    // Professional particle system with adaptive colors
-    const createParticleLayer = (count, colorLight, colorDark, size, speed) => {
-      const positions = new Float32Array(count * 3);
-      const colors = new Float32Array(count * 3);
-      const sizes = new Float32Array(count);
-      const velocities = new Float32Array(count * 3);
+    // Simple floating particles - much fewer and more subtle
+    const createSubtleParticles = () => {
+      const particleCount = 30; // Reduced from 150+
+      const positions = new Float32Array(particleCount * 3);
+      const colors = new Float32Array(particleCount * 3);
+      const sizes = new Float32Array(particleCount);
 
-      for (let i = 0; i < count; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 50;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 40;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
 
-        // Adaptive colors based on mode
-        const baseColor = darkMode ? colorDark : colorLight;
+        // Subtle colors
+        const baseColor = darkMode ? 0x6366f1 : 0x8b5cf6;
         const particleColor = new THREE.Color(baseColor);
         colors[i * 3] = particleColor.r;
         colors[i * 3 + 1] = particleColor.g;
         colors[i * 3 + 2] = particleColor.b;
 
-        sizes[i] = Math.random() * size + 1;
-        
-        velocities[i * 3] = (Math.random() - 0.5) * speed;
-        velocities[i * 3 + 1] = (Math.random() - 0.5) * speed;
-        velocities[i * 3 + 2] = (Math.random() - 0.5) * speed;
+        sizes[i] = Math.random() * 2 + 0.5; // Smaller particles
       }
 
       const geometry = new THREE.BufferGeometry();
@@ -69,35 +63,32 @@ const useEnhancedBackground = (containerRef, darkMode) => {
 
       const material = new THREE.ShaderMaterial({
         uniforms: {
-          time: { value: 0 },
-          darkMode: { value: darkMode ? 1.0 : 0.0 }
+          time: { value: 0 }
         },
         vertexShader: `
           attribute float size;
           varying vec3 vColor;
           varying float vAlpha;
           uniform float time;
-          uniform float darkMode;
           
           void main() {
             vColor = color;
             vec3 pos = position;
             
-            pos.y += sin(time * 0.3 + position.x * 0.08) * 2.5;
-            pos.x += cos(time * 0.2 + position.z * 0.06) * 2.0;
-            pos.z += sin(time * 0.25 + position.y * 0.07) * 1.5;
+            // Very gentle movement
+            pos.y += sin(time * 0.1 + position.x * 0.02) * 1.0;
+            pos.x += cos(time * 0.08 + position.z * 0.02) * 0.8;
             
-            vAlpha = sin(time * 0.5 + position.x + position.y) * 0.4 + 0.7;
+            vAlpha = sin(time * 0.2 + position.x + position.y) * 0.2 + 0.6;
             
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-            gl_PointSize = size * (400.0 / -mvPosition.z);
+            gl_PointSize = size * (300.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
           }
         `,
         fragmentShader: `
           varying vec3 vColor;
           varying float vAlpha;
-          uniform float darkMode;
           
           void main() {
             vec2 center = gl_PointCoord - vec2(0.5);
@@ -106,16 +97,9 @@ const useEnhancedBackground = (containerRef, darkMode) => {
             if (dist > 0.5) discard;
             
             float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-            alpha *= vAlpha;
+            alpha *= vAlpha * 0.4; // Much more transparent
             
-            // Professional color adaptation
-            vec3 color = mix(
-              vColor * 0.8,  // Light mode - more subtle
-              vColor * 1.2,  // Dark mode - more vibrant
-              darkMode
-            );
-            
-            gl_FragColor = vec4(color, alpha * mix(0.6, 0.9, darkMode));
+            gl_FragColor = vec4(vColor, alpha);
           }
         `,
         transparent: true,
@@ -123,94 +107,15 @@ const useEnhancedBackground = (containerRef, darkMode) => {
         blending: THREE.AdditiveBlending
       });
 
-      return { 
-        points: new THREE.Points(geometry, material), 
-        material, 
-        velocities: velocities 
-      };
+      return { points: new THREE.Points(geometry, material), material };
     };
 
-    // Professional color palette
-    const particleLayers = [
-      createParticleLayer(150, 0x6366f1, 0x8b5cf6, 3, 0.015), // Indigo/Purple
-      createParticleLayer(120, 0x06b6d4, 0x0ea5e9, 2.5, 0.012), // Cyan/Blue  
-      createParticleLayer(100, 0x10b981, 0x059669, 2, 0.01), // Emerald/Green
-      createParticleLayer(80, 0xf59e0b, 0xd97706, 1.5, 0.008), // Amber/Orange
-    ];
+    const particleSystem = createSubtleParticles();
+    scene.add(particleSystem.points);
 
-    particleLayers.forEach(layer => scene.add(layer.points));
+    camera.position.z = 15;
 
-    // Enhanced geometric shapes with professional colors
-    const shapes = [];
-    const shapeGeometries = [
-      new THREE.OctahedronGeometry(1.0, 1),
-      new THREE.TetrahedronGeometry(0.8, 1),
-      new THREE.IcosahedronGeometry(0.6, 1),
-      new THREE.DodecahedronGeometry(0.9, 1)
-    ];
-
-    // Professional shape colors
-    const shapeColors = darkMode 
-      ? [0x8b5cf6, 0x0ea5e9, 0x059669, 0xd97706, 0xdc2626] // Vibrant for dark mode
-      : [0x6366f1, 0x06b6d4, 0x10b981, 0xf59e0b, 0xef4444]; // Subtle for light mode
-
-    for (let i = 0; i < 10; i++) {
-      const geometry = shapeGeometries[Math.floor(Math.random() * shapeGeometries.length)];
-      
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          time: { value: 0 },
-          color: { value: new THREE.Color(shapeColors[Math.floor(Math.random() * shapeColors.length)]) },
-          darkMode: { value: darkMode ? 1.0 : 0.0 }
-        },
-        vertexShader: `
-          uniform float time;
-          varying vec3 vPosition;
-          
-          void main() {
-            vPosition = position;
-            vec3 pos = position;
-            
-            pos *= 1.0 + sin(time * 0.6 + length(position)) * 0.08;
-            
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform float time;
-          uniform vec3 color;
-          uniform float darkMode;
-          varying vec3 vPosition;
-          
-          void main() {
-            float intensity = sin(time * 0.4 + length(vPosition)) * 0.3 + 0.8;
-            
-            vec3 finalColor = color * mix(0.7, 1.1, darkMode) * intensity;
-            
-            float alpha = mix(0.4, 0.7, darkMode) * intensity;
-            
-            gl_FragColor = vec4(finalColor, alpha);
-          }
-        `,
-        transparent: true,
-        wireframe: false,
-        side: THREE.DoubleSide
-      });
-
-      const shape = new THREE.Mesh(geometry, material);
-      shape.position.set(
-        (Math.random() - 0.5) * 35,
-        (Math.random() - 0.5) * 25,
-        (Math.random() - 0.5) * 25
-      );
-      
-      shapes.push(shape);
-      scene.add(shape);
-    }
-
-    camera.position.z = 18;
-
-    // Animation loop
+    // Simple animation loop
     let running = true;
     let frameId;
     const clock = new THREE.Clock();
@@ -220,35 +125,12 @@ const useEnhancedBackground = (containerRef, darkMode) => {
       
       const elapsedTime = clock.getElapsedTime();
       
-      // Update particles
-      particleLayers.forEach(layer => {
-        layer.material.uniforms.time.value = elapsedTime;
-        layer.material.uniforms.darkMode.value = darkMode ? 1.0 : 0.0;
-        
-        const positions = layer.points.geometry.attributes.position.array;
-        for (let i = 0; i < positions.length; i += 3) {
-          positions[i] += layer.velocities[i];
-          positions[i + 1] += layer.velocities[i + 1];
-          positions[i + 2] += layer.velocities[i + 2];
-          
-          if (Math.abs(positions[i]) > 25) layer.velocities[i] *= -1;
-          if (Math.abs(positions[i + 1]) > 25) layer.velocities[i + 1] *= -1;
-          if (Math.abs(positions[i + 2]) > 25) layer.velocities[i + 2] *= -1;
-        }
-        layer.points.geometry.attributes.position.needsUpdate = true;
-      });
+      // Update particles with very gentle movement
+      particleSystem.material.uniforms.time.value = elapsedTime;
       
-      // Update shapes
-      shapes.forEach((shape, index) => {
-        shape.rotation.x += 0.005;
-        shape.rotation.y += 0.008;
-        shape.rotation.z += 0.003;
-        shape.position.y += Math.sin(elapsedTime + index) * 0.001;
-        shape.material.uniforms.time.value = elapsedTime;
-        shape.material.uniforms.darkMode.value = darkMode ? 1.0 : 0.0;
-      });
-
-      camera.position.z = 18 + Math.sin(elapsedTime * 0.3) * 0.5;
+      // Subtle camera movement
+      camera.position.x = Math.sin(elapsedTime * 0.1) * 0.3;
+      camera.position.y = Math.cos(elapsedTime * 0.08) * 0.2;
 
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -256,17 +138,18 @@ const useEnhancedBackground = (containerRef, darkMode) => {
 
     animate();
 
-    // Mouse interaction
+    // Gentle mouse interaction
     const mouse = new THREE.Vector2();
     const handleMouseMove = (event) => {
       const rect = containerRef.current.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
       
+      // Very subtle camera response to mouse
       gsap.to(camera.position, {
-        x: mouse.x * 1.5,
-        y: mouse.y * 1,
-        duration: 2.5,
+        x: mouse.x * 0.5,
+        y: mouse.y * 0.3,
+        duration: 3,
         ease: "power2.out"
       });
     };
@@ -293,15 +176,8 @@ const useEnhancedBackground = (containerRef, darkMode) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
       
-      particleLayers.forEach(layer => {
-        layer.points.geometry.dispose();
-        layer.material.dispose();
-      });
-      shapes.forEach(shape => {
-        shape.geometry.dispose();
-        shape.material.dispose();
-      });
-      shapeGeometries.forEach(geo => geo.dispose());
+      particleSystem.points.geometry.dispose();
+      particleSystem.material.dispose();
       renderer.dispose();
       
       if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
@@ -533,8 +409,7 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
       
       gsap.to(icon, {
         scale: 1.2,
-        rotation: 360,
-        duration: 0.9,
+        duration: 0.8,
         ease: "back.out(1.4)"
       });
     };
@@ -614,8 +489,8 @@ const HomePage = () => {
   const statsRef = useRef(null);
   const pathsRef = useRef(null);
 
-  // Initialize Three.js background
-  useEnhancedBackground(bgRef, darkMode);
+  // Initialize simplified background for hero
+  useSimpleBackground(bgRef, darkMode);
 
   // Initialize GSAP animations
   useEnhancedAnimations({
@@ -748,21 +623,20 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* ENHANCED HERO SECTION */}
+      {/* SIMPLIFIED HERO SECTION */}
       <section className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden py-12 md:py-0">
-        {/* Three.js Background */}
+        {/* Simplified Three.js Background */}
         <div
           ref={bgRef}
           className="absolute inset-0 w-full h-full z-0"
           aria-hidden="true"
         />
         
-        {/* Enhanced Parallax Elements */}
+        {/* Simplified CSS Gradient Background */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-r from-indigo-400/10 to-purple-500/10 dark:from-indigo-400/20 dark:to-purple-500/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 md:w-[32rem] h-80 md:h-[32rem] bg-gradient-to-r from-purple-400/10 to-pink-400/10 dark:from-purple-400/20 dark:to-pink-400/20 rounded-full blur-3xl" />
-          <div className="absolute top-1/3 right-1/3 w-32 md:w-48 h-32 md:h-48 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 dark:from-cyan-500/25 dark:to-blue-500/25 rounded-full blur-2xl" />
-          <div className="absolute bottom-1/3 left-1/3 w-48 md:w-64 h-48 md:h-64 bg-gradient-to-r from-emerald-500/15 to-teal-400/15 dark:from-emerald-500/25 dark:to-teal-400/25 rounded-full blur-2xl" />
+          {/* Subtle gradient overlays instead of many animated elements */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-indigo-200/20 to-purple-200/20 dark:from-indigo-500/10 dark:to-purple-500/10 rounded-full blur-3xl opacity-60" />
+          <div className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-r from-purple-200/20 to-pink-200/20 dark:from-purple-500/10 dark:to-pink-500/10 rounded-full blur-3xl opacity-60" />
         </div>
 
         {/* Hero Content */}
@@ -813,7 +687,7 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* Enhanced Floating Preview Cards */}
+        {/* Simplified Floating Preview Cards */}
         <div className="absolute bottom-10 md:bottom-20 left-1/2 transform -translate-x-1/2 z-[2] flex gap-4 md:gap-8 opacity-70 pointer-events-none">
           <div className="w-32 md:w-48 h-20 md:h-32 lg:w-64 lg:h-40 bg-white/80 dark:bg-gray-800/80 rounded-2xl md:rounded-3xl shadow-xl border border-indigo-200/60 dark:border-indigo-700/60 backdrop-blur-2xl transform rotate-[-12deg] transition-transform duration-700 flex items-center justify-center">
             <div className="text-center">
