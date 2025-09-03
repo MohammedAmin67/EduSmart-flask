@@ -74,7 +74,6 @@ const useEnhancedBackground = (containerRef, darkMode) => {
         },
         vertexShader: `
           attribute float size;
-          attribute vec3 color;
           varying vec3 vColor;
           varying float vAlpha;
           uniform float time;
