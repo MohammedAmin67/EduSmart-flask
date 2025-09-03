@@ -930,7 +930,7 @@ const HomePage = () => {
             <Link to="/signup">
               <Button
                 size="lg"
-                className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-5 bg-white text-indigo-600 hover:bg-gray-100 shadow-2xl rounded-xl md:rounded-2xl font-black transition-all duration-300 hover:scale-105 hover:shadow-white/30 group"
+                className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 dark:from-indigo-500 dark:via-purple-500 dark:to-pink-500 text-indigo-600 hover:bg-gray-100 shadow-2xl rounded-xl md:rounded-2xl font-black transition-all duration-300 hover:scale-105 hover:shadow-white/30 group"
               >
                 Create Your Free Account
                 <Sparkles className="ml-2 md:ml-3 inline group-hover:rotate-12 transition-transform" size={20} />
