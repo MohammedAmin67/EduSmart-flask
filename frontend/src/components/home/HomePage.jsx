@@ -534,8 +534,8 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
       
       gsap.to(icon, {
         scale: 1.2,
-        rotation: 180,
-        duration: 0.5,
+        rotation: 360,
+        duration: 0.9,
         ease: "back.out(1.4)"
       });
     };
@@ -806,7 +806,7 @@ const HomePage = () => {
 
             <button
               onClick={scrollToFeatures}
-              className="animate-bounce hover:animate-pulse transition-all duration-300 group"
+              className="animate-bounce hover:animate-pulse transition-all duration-500 group"
               aria-label="Scroll to features"
             >
               <ChevronDown className="text-indigo-500 dark:text-indigo-400 w-10 md:w-12 h-10 md:h-12 group-hover:scale-125 transition-transform drop-shadow-lg" />
