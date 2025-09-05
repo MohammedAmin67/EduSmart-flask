@@ -9,10 +9,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextPlugin } from 'gsap/TextPlugin';
 
-// Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
-// Simplified background for hero section
 const useSimpleBackground = (containerRef, darkMode) => {
   useEffect(() => {
     if (!containerRef.current) return;
@@ -20,7 +18,6 @@ const useSimpleBackground = (containerRef, darkMode) => {
     let width = containerRef.current.offsetWidth || window.innerWidth;
     let height = containerRef.current.offsetHeight || 600;
 
-    // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ 
@@ -34,9 +31,8 @@ const useSimpleBackground = (containerRef, darkMode) => {
     renderer.setClearColor(0x000000, 0);
     containerRef.current.appendChild(renderer.domElement);
 
-    // Simple floating particles - much fewer and more subtle
     const createSubtleParticles = () => {
-      const particleCount = 30; // Reduced from 150+
+      const particleCount = 30;
       const positions = new Float32Array(particleCount * 3);
       const colors = new Float32Array(particleCount * 3);
       const sizes = new Float32Array(particleCount);
@@ -46,14 +42,13 @@ const useSimpleBackground = (containerRef, darkMode) => {
         positions[i * 3 + 1] = (Math.random() - 0.5) * 30;
         positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
 
-        // Subtle colors
         const baseColor = darkMode ? 0x6366f1 : 0x8b5cf6;
         const particleColor = new THREE.Color(baseColor);
         colors[i * 3] = particleColor.r;
         colors[i * 3 + 1] = particleColor.g;
         colors[i * 3 + 2] = particleColor.b;
 
-        sizes[i] = Math.random() * 2 + 0.5; // Smaller particles
+        sizes[i] = Math.random() * 2 + 0.5;
       }
 
       const geometry = new THREE.BufferGeometry();
@@ -62,25 +57,18 @@ const useSimpleBackground = (containerRef, darkMode) => {
       geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
       const material = new THREE.ShaderMaterial({
-        uniforms: {
-          time: { value: 0 }
-        },
+        uniforms: { time: { value: 0 } },
         vertexShader: `
           attribute float size;
           varying vec3 vColor;
           varying float vAlpha;
           uniform float time;
-          
           void main() {
             vColor = color;
             vec3 pos = position;
-            
-            // Very gentle movement
             pos.y += sin(time * 0.1 + position.x * 0.02) * 1.0;
             pos.x += cos(time * 0.08 + position.z * 0.02) * 0.8;
-            
             vAlpha = sin(time * 0.2 + position.x + position.y) * 0.2 + 0.6;
-            
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_PointSize = size * (300.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
@@ -89,16 +77,12 @@ const useSimpleBackground = (containerRef, darkMode) => {
         fragmentShader: `
           varying vec3 vColor;
           varying float vAlpha;
-          
           void main() {
             vec2 center = gl_PointCoord - vec2(0.5);
             float dist = length(center);
-            
             if (dist > 0.5) discard;
-            
             float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-            alpha *= vAlpha * 0.4; // Much more transparent
-            
+            alpha *= vAlpha * 0.4;
             gl_FragColor = vec4(vColor, alpha);
           }
         `,
@@ -115,37 +99,27 @@ const useSimpleBackground = (containerRef, darkMode) => {
 
     camera.position.z = 15;
 
-    // Simple animation loop
     let running = true;
     let frameId;
     const clock = new THREE.Clock();
 
     const animate = () => {
       if (!running) return;
-      
       const elapsedTime = clock.getElapsedTime();
-      
-      // Update particles with very gentle movement
       particleSystem.material.uniforms.time.value = elapsedTime;
-      
-      // Subtle camera movement
       camera.position.x = Math.sin(elapsedTime * 0.1) * 0.3;
       camera.position.y = Math.cos(elapsedTime * 0.08) * 0.2;
-
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
 
     animate();
 
-    // Gentle mouse interaction
     const mouse = new THREE.Vector2();
     const handleMouseMove = (event) => {
       const rect = containerRef.current.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
-      
-      // Very subtle camera response to mouse
       gsap.to(camera.position, {
         x: mouse.x * 0.5,
         y: mouse.y * 0.3,
@@ -156,12 +130,10 @@ const useSimpleBackground = (containerRef, darkMode) => {
 
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Resize handler
     const handleResize = () => {
       if (!containerRef.current) return;
       width = containerRef.current.offsetWidth;
       height = containerRef.current.offsetHeight;
-      
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
@@ -169,17 +141,14 @@ const useSimpleBackground = (containerRef, darkMode) => {
 
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
     return () => {
       running = false;
       cancelAnimationFrame(frameId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
-      
       particleSystem.points.geometry.dispose();
       particleSystem.material.dispose();
       renderer.dispose();
-      
       if (containerRef.current && containerRef.current.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
       }
@@ -187,14 +156,10 @@ const useSimpleBackground = (containerRef, darkMode) => {
   }, [containerRef, darkMode]);
 };
 
-// Enhanced GSAP animations
 const useEnhancedAnimations = (refs) => {
   const { heroRef, ctaRef, featuresRef, cardsRef, headerRef, statsRef, pathsRef } = refs;
-
   useEffect(() => {
     const masterTimeline = gsap.timeline();
-
-    // Header animation
     if (headerRef.current) {
       gsap.set(headerRef.current, { y: -100, opacity: 0 });
       masterTimeline.to(headerRef.current, {
@@ -204,70 +169,26 @@ const useEnhancedAnimations = (refs) => {
         ease: "power3.out"
       }, 0);
     }
-
-    // Hero section
     if (heroRef.current) {
       const heroElements = heroRef.current.children;
       gsap.set(heroElements, { opacity: 0, y: 80, scale: 0.9 });
-      
       masterTimeline
-        .to(heroElements[0], {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "back.out(1.7)"
-        }, 0.3)
-        .to(heroElements[1], {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out"
-        }, 0.6)
-        .to(heroElements[2], {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "power2.out"
-        }, 1.0)
-        .to(heroElements[3], {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.6,
-          ease: "back.out(1.4)"
-        }, 1.4)
-        .to(heroElements[4], {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.4,
-          ease: "power2.out"
-        }, 1.8);
+        .to(heroElements[0], { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.7)" }, 0.3)
+        .to(heroElements[1], { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power3.out" }, 0.6)
+        .to(heroElements[2], { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power2.out" }, 1.0)
+        .to(heroElements[3], { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)" }, 1.4)
+        .to(heroElements[4], { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }, 1.8);
     }
-
-    // Stats section
     if (statsRef.current) {
       ScrollTrigger.create({
         trigger: statsRef.current,
         start: "top 80%",
         onEnter: () => {
           const statNumbers = statsRef.current.querySelectorAll('.stat-number');
-          
           gsap.fromTo(statsRef.current.children, 
             { opacity: 0, y: 50, scale: 0.9 },
-            { 
-              opacity: 1, 
-              y: 0, 
-              scale: 1,
-              duration: 0.8,
-              stagger: 0.2,
-              ease: "power3.out"
-            }
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.2, ease: "power3.out" }
           );
-
           statNumbers.forEach((element, index) => {
             const finalNumber = parseInt(element.dataset.count);
             gsap.to({ count: 0 }, {
@@ -284,8 +205,6 @@ const useEnhancedAnimations = (refs) => {
         }
       });
     }
-
-    // Learning paths section
     if (pathsRef.current) {
       ScrollTrigger.create({
         trigger: pathsRef.current,
@@ -293,20 +212,11 @@ const useEnhancedAnimations = (refs) => {
         onEnter: () => {
           gsap.fromTo(pathsRef.current.children,
             { opacity: 0, y: 60, scale: 0.95 },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.8,
-              stagger: 0.15,
-              ease: "power3.out"
-            }
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.15, ease: "power3.out" }
           );
         }
       });
     }
-
-    // Features section
     if (featuresRef.current) {
       ScrollTrigger.create({
         trigger: featuresRef.current,
@@ -314,43 +224,23 @@ const useEnhancedAnimations = (refs) => {
         onEnter: () => {
           gsap.fromTo(featuresRef.current,
             { opacity: 0, y: 80 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 1.2,
-              ease: "power3.out"
-            }
+            { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }
           );
         }
       });
     }
-
-    // Feature cards
     if (cardsRef.current) {
       ScrollTrigger.create({
         trigger: cardsRef.current,
         start: "top 85%",
         onEnter: () => {
           gsap.fromTo(cardsRef.current.children,
-            { 
-              opacity: 0, 
-              y: 80, 
-              scale: 0.9 
-            },
-            {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              duration: 0.8,
-              stagger: 0.12,
-              ease: "back.out(1.2)"
-            }
+            { opacity: 0, y: 80, scale: 0.9 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.12, ease: "back.out(1.2)" }
           );
         }
       });
     }
-
-    // CTA section
     if (ctaRef.current) {
       ScrollTrigger.create({
         trigger: ctaRef.current,
@@ -358,24 +248,17 @@ const useEnhancedAnimations = (refs) => {
         onEnter: () => {
           gsap.fromTo(ctaRef.current,
             { opacity: 0, scale: 0.9 },
-            {
-              opacity: 1,
-              scale: 1,
-              duration: 1.2,
-              ease: "power3.out"
-            }
+            { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" }
           );
         }
       });
     }
-
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, [refs]);
 };
 
-// Enhanced Feature Card with professional colors
 const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) => {
   const Icon = icon;
   const cardRef = useRef(null);
@@ -384,11 +267,8 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
 
   useEffect(() => {
     if (!cardRef.current || !iconRef.current) return;
-
     const card = cardRef.current;
     const icon = iconRef.current;
-
-    // Floating animation
     gsap.to(card, {
       y: Math.sin(index * 1.2) * 6,
       duration: 4 + index * 0.2,
@@ -397,8 +277,6 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
       ease: "power2.inOut",
       delay: delay
     });
-
-    // Hover interactions
     const handleMouseEnter = () => {
       gsap.to(card, {
         scale: 1.05,
@@ -406,14 +284,12 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
         duration: 0.3,
         ease: "power2.out"
       });
-      
       gsap.to(icon, {
         scale: 1.2,
         duration: 0.8,
         ease: "back.out(1.4)"
       });
     };
-
     const handleMouseLeave = () => {
       gsap.to(card, {
         scale: 1,
@@ -421,7 +297,6 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
         duration: 0.4,
         ease: "power2.out"
       });
-      
       gsap.to(icon, {
         scale: 1,
         rotation: 0,
@@ -429,10 +304,8 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
         ease: "power2.out"
       });
     };
-
     card.addEventListener('mouseenter', handleMouseEnter);
     card.addEventListener('mouseleave', handleMouseLeave);
-
     return () => {
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
@@ -456,7 +329,6 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
             <Icon className="text-indigo-600 dark:text-indigo-400" size={32} />
           </div>
         </div>
-        
         <h3 className="text-lg md:text-xl font-bold mb-3 text-gray-900 dark:text-gray-100">
           {title}
         </h3>
@@ -464,8 +336,6 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
           {description}
         </p>
       </div>
-
-      {/* Shine effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700" />
       </div>
@@ -473,13 +343,10 @@ const FeatureCard = ({ icon, title, description, gradient, index, delay = 0 }) =
   );
 };
 
-
-
 const HomePage = () => {
   const { darkMode, toggleDarkMode } = useContext(DarkModeContext);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Refs for animations
   const bgRef = useRef(null);
   const heroRef = useRef(null);
   const ctaRef = useRef(null);
@@ -489,10 +356,7 @@ const HomePage = () => {
   const statsRef = useRef(null);
   const pathsRef = useRef(null);
 
-  // Initialize simplified background for hero
   useSimpleBackground(bgRef, darkMode);
-
-  // Initialize GSAP animations
   useEnhancedAnimations({
     heroRef,
     ctaRef,
@@ -514,13 +378,8 @@ const HomePage = () => {
     });
   };
 
+  // Features section: NO AI, no industry certifications, no global community
   const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Learning",
-      description: "Personalized learning paths powered by advanced AI that adapts to your pace, style, and goals for maximum effectiveness.",
-      gradient: "from-blue-100/80 via-indigo-50/80 to-purple-100/80"
-    },
     {
       icon: Users,
       title: "Collaborative Learning",
@@ -534,10 +393,10 @@ const HomePage = () => {
       gradient: "from-orange-100/80 via-amber-50/80 to-yellow-100/80"
     },
     {
-      icon: Award,
-      title: "Industry Certifications",
-      description: "Earn recognized certificates and badges that boost your career prospects and validate your expertise.",
-      gradient: "from-purple-100/80 via-fuchsia-50/80 to-pink-100/80"
+      icon: BookOpen,
+      title: "Comprehensive Tech Content",
+      description: "Dive deep into coding, web, app development, computer science, and more—built for tomorrow's technologists.",
+      gradient: "from-blue-100/80 via-indigo-50/80 to-purple-100/80"
     },
     {
       icon: Clock,
@@ -546,36 +405,42 @@ const HomePage = () => {
       gradient: "from-cyan-100/80 via-sky-50/80 to-blue-100/80"
     },
     {
-      icon: Globe,
-      title: "Global Community",
-      description: "Join learners from 150+ countries, access content in multiple languages, and broaden your global perspective.",
-      gradient: "from-rose-100/80 via-pink-50/80 to-red-100/80"
+      icon: ShieldCheck,
+      title: "Progress and Privacy",
+      description: "Your learning progress is always private and secure, giving you peace of mind as you grow.",
+      gradient: "from-fuchsia-100/80 via-pink-100/80 to-red-100/80"
+    },
+    {
+      icon: TrendingUp,
+      title: "Continuous Growth",
+      description: "New courses and features are added regularly to keep your skills sharp and up-to-date.",
+      gradient: "from-amber-100/80 via-yellow-50/80 to-lime-100/80"
     }
   ];
 
   const learningPaths = [
     { 
-      title: "Technology & Programming", 
-      description: "Master coding, web development, AI, and emerging technologies with hands-on projects",
-      icon: "💻",
+      title: "Web Development", 
+      description: "Master front-end and back-end web technologies and frameworks.",
+      icon: "🌐",
       color: "from-blue-500 to-indigo-600"
     },
     { 
-      title: "Business & Entrepreneurship", 
-      description: "Build business acumen, leadership skills, and startup knowledge for career growth",
-      icon: "🚀",
+      title: "App Development", 
+      description: "Learn to build mobile and desktop applications using modern tools.",
+      icon: "📱",
       color: "from-purple-500 to-pink-600"
     },
     { 
-      title: "Creative Arts & Design", 
-      description: "Explore graphic design, video production, and digital creativity with industry tools",
-      icon: "🎨",
+      title: "Programming Fundamentals", 
+      description: "Strengthen your logic and problem-solving with core programming skills.",
+      icon: "💡",
       color: "from-pink-500 to-rose-600"
     },
     { 
-      title: "Science & Engineering", 
-      description: "Dive deep into STEM subjects and engineering principles with real-world applications",
-      icon: "🔬",
+      title: "Computer Science Basics", 
+      description: "Grasp the essentials: algorithms, data structures, and more.",
+      icon: "🧠",
       color: "from-emerald-500 to-teal-600"
     }
   ];
@@ -583,7 +448,7 @@ const HomePage = () => {
   return (
     <div className={`bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950/20 min-h-screen relative overflow-x-hidden transition-all duration-700 ${!isLoaded ? 'opacity-0' : 'opacity-100'}`}>
       
-      {/* ENHANCED HEADER */}
+      {/* HEADER */}
       <header 
         ref={headerRef}
         className="bg-white/95 dark:bg-gray-900/95 shadow-lg sticky top-0 z-50 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50"
@@ -603,7 +468,6 @@ const HomePage = () => {
                 </p>
               </div>
             </div>
-            
             <div className="flex items-center space-x-4 md:space-x-6">
               <button
                 onClick={toggleDarkMode}
@@ -612,7 +476,6 @@ const HomePage = () => {
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              
               <Link to="/login">
                 <Button className="shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-purple-600 hover:to-indigo-600 text-white px-4 md:px-8 py-2 md:py-3 rounded-xl md:rounded-2xl font-bold transition-all duration-300 hover:scale-105 hover:shadow-xl text-sm md:text-base">
                   Login to Dashboard
@@ -623,31 +486,23 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* SIMPLIFIED HERO SECTION */}
+      {/* HERO */}
       <section className="relative min-h-screen flex flex-col justify-center items-center overflow-hidden py-12 md:py-0">
-        {/* Simplified Three.js Background */}
         <div
           ref={bgRef}
           className="absolute inset-0 w-full h-full z-0"
           aria-hidden="true"
         />
-        
-        {/* Simplified CSS Gradient Background */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
-          {/* Subtle gradient overlays instead of many animated elements */}
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-indigo-200/20 to-purple-200/20 dark:from-indigo-500/10 dark:to-purple-500/10 rounded-full blur-3xl opacity-60" />
           <div className="absolute bottom-1/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-r from-purple-200/20 to-pink-200/20 dark:from-purple-500/10 dark:to-pink-500/10 rounded-full blur-3xl opacity-60" />
         </div>
-
-        {/* Hero Content */}
         <div className="container mx-auto px-4 md:px-6 z-10 relative">
           <div ref={heroRef} className="flex flex-col items-center text-center max-w-6xl mx-auto">
-            
             <span className="hero-badge inline-flex items-center gap-2 px-6 md:px-8 py-2 md:py-3 rounded-full bg-gradient-to-r from-indigo-100/90 to-purple-100/90 dark:from-indigo-900/90 dark:to-purple-800/90 text-indigo-700 dark:text-indigo-300 font-bold text-sm md:text-base shadow-lg mb-6 md:mb-8 backdrop-blur-xl border border-indigo-200/40 dark:border-indigo-700/40">
               <Star className="text-amber-500" size={16} />
               New: Gamified Learning Experience
             </span>
-
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-gray-900 dark:text-gray-100 mb-6 md:mb-8 leading-[0.9]">
               Master Your{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
@@ -656,14 +511,13 @@ const HomePage = () => {
               <br />
               <span className="text-indigo-600 dark:text-indigo-400">Today</span>
             </h1>
-
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-200 mb-10 md:mb-12 max-w-4xl mx-auto leading-relaxed font-medium">
-              Join <span className="font-black text-purple-600 dark:text-purple-400">50,000+ learners</span> on the world's most{' '}
-              <span className="font-black text-indigo-600 dark:text-indigo-400">innovative educational platform</span>.
+           <div className="mb-8 md:mb-12">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-gray-700 via-indigo-600 to-purple-600 dark:from-gray-200 dark:via-indigo-400 dark:to-purple-400 max-w-5xl mx-auto leading-relaxed font-medium">
+              From learners to leaders—reshaping how the world gains tech skills.
               <br className="hidden sm:block" />
-              Unlock your potential with AI-powered personalized learning.
+              Code, create, and launch projects that matter in today's tech landscape.
             </p>
-
+          </div>
             <div className="flex flex-col sm:flex-row gap-4 md:gap-6 mb-12 md:mb-16">
               <Link to="/signup">
                 <Button
@@ -674,9 +528,7 @@ const HomePage = () => {
                   <ArrowRight className="ml-2 md:ml-3 inline group-hover:translate-x-1 transition-transform" size={20} />
                 </Button>
               </Link>
-              
             </div>
-
             <button
               onClick={scrollToFeatures}
               className="animate-bounce hover:animate-pulse transition-all duration-500 group"
@@ -686,8 +538,6 @@ const HomePage = () => {
             </button>
           </div>
         </div>
-
-        {/* Simplified Floating Preview Cards */}
         <div className="absolute bottom-10 md:bottom-20 left-1/2 transform -translate-x-1/2 z-[2] flex gap-4 md:gap-8 opacity-70 pointer-events-none">
           <div className="w-32 md:w-48 h-20 md:h-32 lg:w-64 lg:h-40 bg-white/80 dark:bg-gray-800/80 rounded-2xl md:rounded-3xl shadow-xl border border-indigo-200/60 dark:border-indigo-700/60 backdrop-blur-2xl transform rotate-[-12deg] transition-transform duration-700 flex items-center justify-center">
             <div className="text-center">
@@ -704,7 +554,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* LEARNING PATHS SECTION */}
+      {/* LEARNING PATHS */}
       <section className="py-16 md:py-24 bg-gradient-to-b from-white/90 to-indigo-50/30 dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-16 md:mb-20">
@@ -715,10 +565,9 @@ const HomePage = () => {
               </span>
             </h2>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Explore diverse fields of study designed by industry experts and tailored for modern learners
+              Explore focused technology tracks designed for modern developers and aspiring tech professionals.
             </p>
           </div>
-          
           <div ref={pathsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {learningPaths.map((path, index) => (
               <div 
@@ -743,7 +592,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ENHANCED FEATURES SECTION */}
+      {/* FEATURES */}
       <section 
         id="features-section" 
         className="py-20 md:py-32 bg-gradient-to-b from-indigo-50/30 via-white/80 to-purple-50/30 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 relative overflow-hidden"
@@ -761,7 +610,6 @@ const HomePage = () => {
               Experience the future of education with cutting-edge technology, personalized learning, and a global community of ambitious learners
             </p>
           </div>
-
           <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
             {features.map((feature, index) => (
               <FeatureCard 
@@ -773,16 +621,13 @@ const HomePage = () => {
             ))}
           </div>
         </div>
-
-        {/* Enhanced decorative elements */}
         <div className="absolute right-0 top-1/2 w-64 md:w-[40rem] h-64 md:h-[40rem] bg-gradient-to-l from-indigo-300/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-0 bottom-0 w-48 md:w-96 h-48 md:h-96 bg-gradient-to-r from-purple-400/5 to-transparent rounded-full blur-3xl pointer-events-none" />
       </section>
 
-      {/* ENHANCED CALL TO ACTION */}
+      {/* CALL TO ACTION */}
       <section className="py-20 md:py-28 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-gray-800 dark:via-indigo-900 dark:to-purple-900 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10" />
-        
         <div
           ref={ctaRef}
           className="container mx-auto px-4 md:px-6 text-center relative z-10"
@@ -794,11 +639,9 @@ const HomePage = () => {
             </span>{' '}
             Your Life?
           </h2>
-          
           <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-10 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-            Join thousands of successful learners who've already transformed their careers with EduSmart
+            Be among the first to shape your tech future with EduSmart.
           </p>
-          
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center">
             <Link to="/signup">
               <Button
@@ -809,16 +652,13 @@ const HomePage = () => {
                 <Sparkles className="ml-2 md:ml-3 inline group-hover:rotate-12 transition-transform" size={20} />
               </Button>
             </Link>
-            
           </div>
         </div>
-        
-        {/* Enhanced background effects */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 md:w-4/5 h-32 md:h-40 bg-gradient-to-r from-indigo-400/20 via-purple-400/20 to-pink-300/20 blur-3xl rounded-full" />
         <div className="absolute bottom-0 right-1/4 w-64 md:w-96 h-64 md:h-96 bg-gradient-to-l from-pink-400/20 to-transparent rounded-full blur-3xl" />
       </section>
 
-      {/* SIMPLIFIED FOOTER */}
+      {/* FOOTER */}
       <footer className="bg-gray-900/98 dark:bg-gray-950/98 text-white py-10 md:py-12 relative backdrop-blur-2xl border-t border-gray-700/30">
         <div className="container mx-auto px-4 md:px-6 text-center">
           <div className="flex items-center justify-center gap-3 md:gap-4 mb-4 md:mb-6">
@@ -829,16 +669,13 @@ const HomePage = () => {
               EduSmart
             </span>
           </div>
-          
           <p className="text-gray-400 text-base md:text-lg mb-3 md:mb-4">
             Transforming classrooms into adventure zones
           </p>
-          
           <p className="text-gray-500 text-sm md:text-base">
             &copy; {new Date().getFullYear()} EduSmart. Transforming education, one learner at a time.
           </p>
         </div>
-        
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-60" />
       </footer>
     </div>
