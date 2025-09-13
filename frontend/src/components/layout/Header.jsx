@@ -164,7 +164,7 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
 
   return (
     <motion.header
-      className="border-b border-blue-100/10 px-2 sm:px-4 py-2 sm:py-3 fixed rounded-s-md top-0 z-40 w-full transition-shadow backdrop-blur-lg duration-500"
+      className="border-b border-blue-100/10 px-2 sm:px-4 py-2 sm:py-3 sticky rounded-s-md top-0 z-40 w-full transition-shadow backdrop-blur-lg duration-500"
       animate={controls}
       initial={{
         boxShadow: "0 0px 0px 0 rgba(0,0,0,0)",
