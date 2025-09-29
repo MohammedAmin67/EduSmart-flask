@@ -504,7 +504,7 @@ const HomePage = () => {
               New: Gamified Learning Experience
             </span>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-gray-900 dark:text-gray-100 mb-6 md:mb-8 leading-[0.9]">
-              Master Your{' '}
+              Anusha{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
                 Future
               </span>
