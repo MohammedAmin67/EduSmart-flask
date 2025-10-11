@@ -8,48 +8,6 @@ import { useUser } from '../context/UserContext';
 import useLogout from '../../hooks/useLogout';
 import { courses } from '../../data/mockData';
 
-const AnimatedLogo = () => (
-  <motion.div
-    initial={{ scale: 0.8, rotate: -10, opacity: 0.4 }}
-    animate={{ scale: 1, rotate: 0, opacity: 1 }}
-    whileHover={{
-      scale: 1.12,
-      rotate: 7,
-      boxShadow: '0px 0px 28px 8px #6366f1',
-      transition: { type: 'spring', stiffness: 220 }
-    }}
-    transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-    className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 via-blue-400 to-green-400 flex items-center justify-center shadow-xl"
-  >
-    <motion.span
-      className="block"
-      animate={{
-        scale: [1, 1.11, 1],
-        rotate: [0, 8, -8, 0],
-        filter: [
-          "drop-shadow(0 0 0px #6366f1)", "drop-shadow(0 0 9px #6366f1)", "drop-shadow(0 0 0px #6366f1)"
-        ]
-      }}
-      transition={{
-        repeat: Infinity,
-        duration: 3,
-        ease: "easeInOut"
-      }}
-    >
-      <svg width={24} height={24} fill="none" viewBox="0 0 24 24">
-        <path d="M3 6.75C3 5.23122 4.23122 4 5.75 4H18.25C19.7688 4 21 5.23122 21 6.75V17.25C21 18.7688 19.7688 20 18.25 20H5.75C4.23122 20 3 18.7688 3 17.25V6.75Z" fill="url(#a)" />
-        <path d="M7 8H17M7 12H13" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-        <defs>
-          <linearGradient id="a" x1="3" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#38bdf8" />
-            <stop offset="1" stopColor="#a78bfa" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </motion.span>
-  </motion.div>
-);
-
 const Star = ({ className, size }) => (
   <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -164,7 +122,7 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
 
   return (
     <motion.header
-      className="border-b border-blue-100/10 px-2 sm:px-4 py-2 sm:py-3 sticky rounded-s-md top-0 z-40 w-full transition-shadow backdrop-blur-lg duration-500"
+      className="border-b border-blue-100/10 py-2 sm:py-3 sticky rounded-s-md top-0 z-40 w-full transition-shadow backdrop-blur-lg duration-500"
       animate={controls}
       initial={{
         boxShadow: "0 0px 0px 0 rgba(0,0,0,0)",
@@ -182,12 +140,9 @@ const Header = ({ onMenuToggle, setActiveTab, setSelectedCourseId }) => {
           >
             <Menu size={24} />
           </motion.button>
-          <div className="flex items-center space-x-2">
-            <AnimatedLogo />
-          </div>
           {/* Responsive search: show icon on small screens, full bar on md+ */}
           <motion.div
-            className="hidden md:flex items-center space-x-2 ml-3 sm:ml-5 relative"
+            className="hidden md:flex items-center space-x-2 relative"
             initial={{ x: 24, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.6 }}

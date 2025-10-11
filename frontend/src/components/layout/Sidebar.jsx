@@ -14,6 +14,48 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const AnimatedLogo = () => (
+  <motion.div
+    initial={{ scale: 0.8, rotate: -10, opacity: 0.4 }}
+    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+    whileHover={{
+      scale: 1.12,
+      rotate: 7,
+      boxShadow: '0px 0px 28px 8px #6366f1',
+      transition: { type: 'spring', stiffness: 220 }
+    }}
+    transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+    className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 via-blue-400 to-green-400 flex items-center justify-center shadow-xl"
+  >
+    <motion.span
+      className="block"
+      animate={{
+        scale: [1, 1.11, 1],
+        rotate: [0, 8, -8, 0],
+        filter: [
+          "drop-shadow(0 0 0px #6366f1)", "drop-shadow(0 0 9px #6366f1)", "drop-shadow(0 0 0px #6366f1)"
+        ]
+      }}
+      transition={{
+        repeat: Infinity,
+        duration: 3,
+        ease: "easeInOut"
+      }}
+    >
+      <svg width={24} height={24} fill="none" viewBox="0 0 24 24">
+        <path d="M3 6.75C3 5.23122 4.23122 4 5.75 4H18.25C19.7688 4 21 5.23122 21 6.75V17.25C21 18.7688 19.7688 20 18.25 20H5.75C4.23122 20 3 18.7688 3 17.25V6.75Z" fill="url(#a)" />
+        <path d="M7 8H17M7 12H13" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        <defs>
+          <linearGradient id="a" x1="3" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#38bdf8" />
+            <stop offset="1" stopColor="#a78bfa" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </motion.span>
+  </motion.div>
+);
+
 const menuVariants = {
   hidden: { 
     x: -320, 
@@ -117,22 +159,16 @@ const StreakWidget = () => (
 // Enhanced brand logo
 const BrandLogo = () => (
   <motion.div
-    className="flex items-center space-x-3 px-4 py-6 border-b border-blue-200/30"
+    className="flex items-center space-x-3 px-4 py-6"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
   >
     <motion.div
-      className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden"
-      whileHover={{ rotate: 360, scale: 1.1 }}
-      transition={{ duration: 0.8 }}
+      className="w-10 h-10 bg-gradient-to-br rounded-2xl flex items-center justify-center shadow-lg relative overflow-hidden"
     >
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500"
-        animate={{ rotate: [0, 360] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-      />
-      <Sparkles className="w-6 h-6 text-white relative z-10" />
+     
+      <AnimatedLogo />
     </motion.div>
     <motion.span
       className="font-bold text-xl text-gray-800 dark:text-gray-100"
