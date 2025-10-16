@@ -20,44 +20,56 @@ export const useAuth = () => {
   const [error, setError] = useState("");
 
   const signup = async (form) => {
-    setLoading(true);
-    setError("");
-    try {
-      const { data } = await API.post("/auth/signup", form);
-      const mergedUser = mergeUserWithMock(data.user);
-      localStorage.setItem("token", data.token); // Changed from "authToken"
-      localStorage.setItem("user", JSON.stringify(mergedUser));
-      localStorage.setItem("isLoggedIn", "true");
-      setUser(mergedUser);
-      return { success: true }; // Add return for better handling
-    } catch (err) {
-      const errorMsg = err.response?.data?.msg || "Signup failed";
-      setError(errorMsg);
-      return { success: false, error: errorMsg }; // Return error
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError("");
+  try {
+    const { data } = await API.post("/auth/signup", form);
+    const mergedUser = mergeUserWithMock(data.user);
+    
+    // Save to localStorage first
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(mergedUser));
+    localStorage.setItem("isLoggedIn", "true");
+    
+    // Small delay to ensure token is available
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    setUser(mergedUser);
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err.response?.data?.msg || "Signup failed";
+    setError(errorMsg);
+    return { success: false, error: errorMsg };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const login = async (form) => {
-    setLoading(true);
-    setError("");
-    try {
-      const { data } = await API.post("/auth/login", form);
-      const mergedUser = mergeUserWithMock(data.user);
-      localStorage.setItem("token", data.token); // Changed from "authToken"
-      localStorage.setItem("user", JSON.stringify(mergedUser));
-      localStorage.setItem("isLoggedIn", "true");
-      setUser(mergedUser);
-      return { success: true }; // Add return
-    } catch (err) {
-      const errorMsg = err.response?.data?.msg || "Login failed";
-      setError(errorMsg);
-      return { success: false, error: errorMsg }; // Return error
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError("");
+  try {
+    const { data } = await API.post("/auth/login", form);
+    const mergedUser = mergeUserWithMock(data.user);
+    
+    // Save to localStorage first
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(mergedUser));
+    localStorage.setItem("isLoggedIn", "true");
+    
+    // Small delay to ensure token is available
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    setUser(mergedUser);
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err.response?.data?.msg || "Login failed";
+    setError(errorMsg);
+    return { success: false, error: errorMsg };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const logout = () => {
     localStorage.removeItem("token"); // Changed from "authToken"
