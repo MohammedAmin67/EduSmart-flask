@@ -92,7 +92,7 @@ def server_error(e):
 
 if __name__ == '__main__':
     PORT = int(os.getenv('PORT', 5002))
-    DEBUG = os.getenv('FLASK_ENV') != 'production'
+    DEBUG = os.getenv('FLASK_ENV', 'development') != 'production'
     
     print("\n" + "="*60)
     print("🚀 EduSmart Flask Backend Starting...")
@@ -110,4 +110,4 @@ if __name__ == '__main__':
     print(f"   PUT  http://localhost:{PORT}/api/users/me/avatar")
     print("="*60 + "\n")
     
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=DEBUG)
