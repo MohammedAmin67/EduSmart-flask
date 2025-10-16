@@ -35,40 +35,7 @@ export const UserProvider = ({ children }) => {
     else localStorage.removeItem("user");
   };
 
-  // FIXED: Only check session once on mount, with better error handling
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    
-    // Only check session if we have both token and user
-    if (!token || !savedUser) {
-      setUser(null);
-      return;
-    }
-
-    const checkSession = async () => {
-      try {
-        const res = await API.get("/users/me");
-        // Only update if we got valid data
-        if (res.data) {
-          setUser(res.data);
-        }
-      } catch (err) {
-        // Only logout if it's actually a 401 (unauthorized)
-        if (err.response?.status === 401) {
-          console.log("Session expired, logging out");
-          setUser(null);
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-        } else {
-          // For other errors (network, 500, etc), keep user logged in
-          console.warn("Session check failed, but keeping user logged in:", err.message);
-        }
-      }
-    };
-
-    checkSession();
-  }, []); // Only run once on mount
+  // REMOVED: The checkSession useEffect that was causing slow logins
 
   const uploadAvatar = useAvatarUpload();
 
@@ -77,7 +44,7 @@ export const UserProvider = ({ children }) => {
       const updatedData = await uploadAvatar(file);
       if (!updatedData) throw new Error("No data from avatar upload");
       
-      // FIXED: Merge the updated data properly
+      // Update user with new avatar
       const updatedUser = {
         ...user,
         ...updatedData,
@@ -85,10 +52,10 @@ export const UserProvider = ({ children }) => {
       };
       
       setUser(updatedUser);
-      return updatedData; // Return so caller knows it succeeded
+      return updatedData;
     } catch (error) {
       console.error("Error updating avatar:", error);
-      throw error; // Re-throw so component can show error
+      throw error;
     }
   };
 
