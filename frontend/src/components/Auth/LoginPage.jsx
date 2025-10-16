@@ -3,6 +3,7 @@ import { BookOpen, ChevronLeft, Sparkles, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../shared/Button';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { DarkModeContext } from '../../App';
 import toast from 'react-hot-toast';
 import API from '../../api/axios.js';
@@ -21,14 +22,19 @@ const LoginPage = ({ isLoggedIn, onBack, onLogin, onGoToSignUp }) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-   const handleSubmit = async e => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setSubmitting(true);
     try {
       const response = await API.post('/auth/login', form);
-      localStorage.setItem('authToken', response.data.token);
+      
+      // ✅ FIXED: Use 'token' instead of 'authToken'
+      localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('isLoggedIn', 'true');
+      
+      console.log('✅ Token saved:', !!localStorage.getItem('token'));
+      
       setSubmitting(false);
       toast.success(response.data.msg || 'Login successful!');
       if (onLogin) onLogin(response.data.user);

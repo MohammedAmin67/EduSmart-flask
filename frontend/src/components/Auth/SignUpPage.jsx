@@ -52,9 +52,14 @@ const SignUpPage = ({ isLoggedIn, onBack, onSignUp }) => {
     setSubmitting(true);
     try {
       const response = await API.post('/auth/signup', form);
-      localStorage.setItem('authToken', response.data.token);
+      
+      // ✅ FIXED: Use 'token' instead of 'authToken'
+      localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('isLoggedIn', 'true');
+      
+      console.log('✅ Token saved:', !!localStorage.getItem('token'));
+      
       setSubmitting(false);
       toast.success(response.data.msg || "Sign up successful!");
       if (onSignUp) onSignUp(response.data.user); 
