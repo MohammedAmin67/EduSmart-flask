@@ -45,22 +45,30 @@ export const useAuth = () => {
   }
 };
 
-  const login = async (form) => {
+ const login = async (form) => {
   setLoading(true);
   setError("");
   try {
     const { data } = await API.post("/auth/login", form);
+    
+    console.log("✅ Login response:", data);
+    console.log("🔑 Token received:", data.token?.substring(0, 20) + "...");
+    
     const mergedUser = mergeUserWithMock(data.user);
     
-    // Save to localStorage first
+    // Save to localStorage
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(mergedUser));
     localStorage.setItem("isLoggedIn", "true");
     
-    // Small delay to ensure token is available
-    await new Promise(resolve => setTimeout(resolve, 100));
+    console.log("💾 Token saved to localStorage");
+    console.log("✅ Verification - token exists:", !!localStorage.getItem("token"));
     
     setUser(mergedUser);
+    
+    // Force page reload to ensure token is available everywhere
+    window.location.reload();
+    
     return { success: true };
   } catch (err) {
     const errorMsg = err.response?.data?.msg || "Login failed";
