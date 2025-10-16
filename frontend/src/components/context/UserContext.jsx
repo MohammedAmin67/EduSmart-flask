@@ -35,31 +35,60 @@ export const UserProvider = ({ children }) => {
     else localStorage.removeItem("user");
   };
 
+  // FIXED: Only check session once on mount, with better error handling
   useEffect(() => {
-    // Only run if a user is present (localStorage or state)
-    if (!user) return;
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+    
+    // Only check session if we have both token and user
+    if (!token || !savedUser) {
+      setUser(null);
+      return;
+    }
+
     const checkSession = async () => {
       try {
         const res = await API.get("/users/me");
-        setUser(res.data); // update with fresh user from server
+        // Only update if we got valid data
+        if (res.data) {
+          setUser(res.data);
+        }
       } catch (err) {
-        setUser(null); // clear user if 401 or error
-        localStorage.removeItem("user");
+        // Only logout if it's actually a 401 (unauthorized)
+        if (err.response?.status === 401) {
+          console.log("Session expired, logging out");
+          setUser(null);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+        } else {
+          // For other errors (network, 500, etc), keep user logged in
+          console.warn("Session check failed, but keeping user logged in:", err.message);
+        }
       }
     };
+
     checkSession();
-    // eslint-disable-next-line
-  }, []);
+  }, []); // Only run once on mount
 
   const uploadAvatar = useAvatarUpload();
 
   const updateAvatar = async (file) => {
     try {
-      const updatedData = await uploadAvatar(file); 
+      const updatedData = await uploadAvatar(file);
       if (!updatedData) throw new Error("No data from avatar upload");
-      setUser(updatedData); 
+      
+      // FIXED: Merge the updated data properly
+      const updatedUser = {
+        ...user,
+        ...updatedData,
+        avatar: updatedData.avatar
+      };
+      
+      setUser(updatedUser);
+      return updatedData; // Return so caller knows it succeeded
     } catch (error) {
       console.error("Error updating avatar:", error);
+      throw error; // Re-throw so component can show error
     }
   };
 
