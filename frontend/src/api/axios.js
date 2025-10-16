@@ -3,14 +3,14 @@ import { logoutUserOn401 } from "../utils/logoutHandler.js";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5002/api",
+  withCredentials: true,
 });
 
 API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("token"); // Changed from "authToken"
   if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
-
 
 API.interceptors.response.use(
   response => response,

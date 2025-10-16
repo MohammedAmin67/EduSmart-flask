@@ -1,0 +1,41 @@
+services:
+  # Backend Service
+  - type: web
+    name: edusmart-backend
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend-flask
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 5002
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+    
+  # Frontend Service
+  - type: web
+    name: edusmart-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

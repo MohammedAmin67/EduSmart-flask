@@ -18,6 +18,15 @@ build/
 frontend/dist/
 backend/dist/
 
+#Python
+venv/
+__pycache__/
+*.pyc
+
+
+# Database
+*.db
+
 # Environment files
 .env
 .env.*
@@ -41,6 +50,7 @@ backend/.env.*
 *.sw?
 
 # OS files
+.DS_Store
 Thumbs.db
 
 # Misc

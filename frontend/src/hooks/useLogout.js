@@ -8,14 +8,21 @@ function useLogout(setUser) {
   const logout = async () => {
     try {
       await API.post("/auth/logout");
-      localStorage.removeItem("authToken");
+      localStorage.removeItem("token"); // Changed from "authToken"
       localStorage.removeItem("user");
       localStorage.removeItem("isLoggedIn");
       if (setUser) setUser(null);
       toast.success("Logged out!");
       navigate("/");
     } catch (error) {
-      toast.error("Logout failed. Please try again.");
+      // Even if API fails, clear local storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("isLoggedIn");
+      if (setUser) setUser(null);
+      console.error("Logout error:", error);
+      toast.error("Logout failed, but cleared local session.");
+      navigate("/");
     }
   };
 
