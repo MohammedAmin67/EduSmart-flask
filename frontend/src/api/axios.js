@@ -3,14 +3,11 @@ import { logoutUserOn401 } from "../utils/logoutHandler.js";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5002/api",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true, // Add this for cookies
 });
 
 API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token"); // Changed from "authToken"
   if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
