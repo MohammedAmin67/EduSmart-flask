@@ -188,8 +188,6 @@ Our mission is to inspire continuous learning through gamification, progress tra
 ⭐ **Star this repo if you find it helpful!**
 
 [![GitHub stars](https://img.shields.io/github/stars/MohammedAmin67/EduSmart-flask?style=social)](https://github.com/MohammedAmin67/EduSmart-flask)
-[![GitHub forks](https://img.shields.io/github/forks/MohammedAmin67/EduSmart-flask?style=social)](https://github.com/MohammedAmin67/EduSmart-flask/fork)
-[![GitHub watchers](https://img.shields.io/github/watchers/MohammedAmin67/EduSmart-flask?style=social)](https://github.com/MohammedAmin67/EduSmart-flask)
 
 ---
 
