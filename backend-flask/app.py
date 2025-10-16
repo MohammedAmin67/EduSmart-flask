@@ -92,6 +92,7 @@ def server_error(e):
 
 if __name__ == '__main__':
     PORT = int(os.getenv('PORT', 5002))
+    DEBUG = os.getenv('FLASK_ENV') != 'production'
     
     print("\n" + "="*60)
     print("🚀 EduSmart Flask Backend Starting...")
